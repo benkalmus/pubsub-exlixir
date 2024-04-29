@@ -10,7 +10,7 @@ defmodule Pubsub.Application do
   def start(_type, _args) do
     children = [
       # Starts a worker by calling: Pubsub.Worker.start_link(arg)
-      # {Pubsub.Worker, arg}
+      {Pubsub, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
