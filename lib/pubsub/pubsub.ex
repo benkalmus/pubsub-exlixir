@@ -38,7 +38,7 @@ defmodule Pubsub do
           start: {Pubsub.Topic, :start_link, [init_args]},
           restart: :transient     #restart if crashed, but not if stopped
         }
-        Logger.info("Starting new Topic GenServer #{topic_name}")
+        Logger.info("Starting new Topic `#{topic_name}`")
         DynamicSupervisor.start_child(__MODULE__, spec)
     end
   end

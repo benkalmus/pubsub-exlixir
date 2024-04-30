@@ -74,7 +74,7 @@ defmodule Pubsub.Topic do
 
   @impl true
   def terminate(reason, state) do
-    Logger.info("Topic #{state.name} stopped for reason: #{inspect(reason)}")
+    Logger.info("Topic `#{state.name}` stopped for reason: #{inspect(reason)}")
   end
   # ====================
   # Private Functions
