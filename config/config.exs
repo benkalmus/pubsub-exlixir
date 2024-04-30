@@ -6,16 +6,24 @@ import Config
 
 ## pubsub
 config :pubsub,
-  env: config_env()   #allows us to check env at runtime
+  #allows us to check env at runtime
+  env: config_env()
 
 ## logger
 config :logger, :default_formatter,
-  format: "$time [$level]$metadata $message\n"
+  format: "\n$time [$level]$metadata $message\n",
+  metadata: [:module, :line]
 
-config :logger, :console,
-  level: :info
+#Configure (deprecated console logger, see https://hexdocs.pm/logger/main/Logger.Backends.Console.html)
+config :logger, :backends, [Logger.Backends.Console]
 
-config :logger, :file,
-  level: :info,
-  path: "log/file.log",
-  format: "$time [$level]$metadata $message\n"
+#Configure default handler (see https://hexdocs.pm/logger/Logger.html#module-boot-configuration)
+config :logger, :default_handler,
+  config: [
+    file: ~c"log/console.log",
+    filesync_repeat_interval: 5000,
+    file_check: 5000,
+    max_no_bytes: 10_000_000,
+    max_no_files: 5,
+    compress_on_rotate: true
+  ]
