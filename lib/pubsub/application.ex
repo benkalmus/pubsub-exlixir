@@ -4,18 +4,18 @@ defmodule Pubsub.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   @impl true
   @spec start(any(), any()) :: {:error, any()} | {:ok, pid()}
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: Pubsub.Worker.start_link(arg)
-      {Pubsub, []}
+      # {Pubsub, []},
+      {Pubsub.RootSup, []}
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Pubsub.Supervisor]
+    Logger.info("Starting Application PubSub")
+    opts = [strategy: :one_for_one, name: __MODULE__]
     Supervisor.start_link(children, opts)
   end
 end

@@ -5,6 +5,7 @@ defmodule Pubsub do
   """
   use DynamicSupervisor
   import Pubsub.Common
+  require Logger
 
   # ====
   # Type Specs
@@ -12,7 +13,6 @@ defmodule Pubsub do
 
   # =====================
   # Public API
-
   def start_link(init_arg) do
     DynamicSupervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
@@ -38,6 +38,7 @@ defmodule Pubsub do
           start: {Pubsub.Topic, :start_link, [init_args]},
           restart: :transient     #restart if crashed, but not if stopped
         }
+        Logger.info("Starting new Topic GenServer #{topic_name}")
         DynamicSupervisor.start_child(__MODULE__, spec)
     end
   end
@@ -65,21 +66,6 @@ defmodule Pubsub do
     case find_topic(topic_name) do
       {:ok, _} -> true
       {:error, :not_found} -> false
-    end
-  end
-
-  @doc """
-  Stops a Topic gen_server if found.
-
-  ## Examples
-    iex> Pubsub.stop_topic("some topic name")
-    :ok
-  """
-  @spec stop_topic(topic_name()) :: :ok | {:error, :not_found}
-  def stop_topic(topic_name) do
-    case find_topic(topic_name) do
-      {:ok, pid} -> DynamicSupervisor.terminate_child(__MODULE__, pid)
-      err -> err
     end
   end
 

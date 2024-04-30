@@ -6,6 +6,7 @@ defmodule Pubsub.Topic do
   """
   use GenServer
   import Pubsub.Common
+  require Logger
 
   defstruct [
     name: "",
@@ -69,6 +70,11 @@ defmodule Pubsub.Topic do
   def handle_call({:unsubscribe, pid}, _from, state) do
     state = update_in(state.subscriber_pids, &MapSet.delete(&1, pid))
     {:reply, :ok, state}
+  end
+
+  @impl true
+  def terminate(reason, state) do
+    Logger.info("Topic #{state.name} stopped for reason: #{inspect(reason)}")
   end
   # ====================
   # Private Functions
