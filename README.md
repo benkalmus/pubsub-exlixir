@@ -1,6 +1,10 @@
 # Pubsub
 
-**TODO: Add description**
+A simple Pubsub application written as an Elixir exercise. 
+In this implementation, a dynamic supervisor is used to start and stop `Topic` gen_servers that store subscribers. Messages published on the Topic will be broadcast to each sub. 
+
+ 
+
 
 ## Installation
 

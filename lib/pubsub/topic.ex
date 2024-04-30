@@ -19,19 +19,22 @@ defmodule Pubsub.Topic do
 
   # =====================
   # Public API
-  @spec subscribe(String.t(), pid()) :: :ok | {:error, :not_found}
+  @spec subscribe(Pubsub.topic_name(), pid()) :: :ok
   def subscribe(topic_name, subscriber_pid) do
     GenServer.call(via_tuple(topic_name), {:subscribe, subscriber_pid})
   end
 
+  @spec unsubscribe(Pubsub.topic_name(), pid()) :: :ok
   def unsubscribe(topic_name, subscriber_pid) do
     GenServer.call(via_tuple(topic_name), {:unsubscribe, subscriber_pid})
   end
 
+  @spec publish(Pubsub.topic_name(), any()) :: :ok
   def publish(topic_name, message) do
     GenServer.cast(via_tuple(topic_name), {:publish, message})
   end
 
+  @spec stop(Pubsub.topic_name()) :: :ok
   def stop(topic_name) do
     GenServer.stop(via_tuple(topic_name))
   end
