@@ -4,6 +4,7 @@ defmodule Pubsub do
 
   """
   use DynamicSupervisor
+  import Pubsub.Common
 
   # =====================
   # Public API
@@ -17,7 +18,7 @@ defmodule Pubsub do
 
   ## Examples
     iex> {:ok, pid} = Pubsub.new_topic("some topic name")
-    iex> is_pid(pid)
+    iex>  is_pid(pid)
     :true
   """
   @spec new_topic(String.t()) :: {:ok, pid()} | {:error, :already_started}
@@ -30,8 +31,8 @@ defmodule Pubsub do
           name: topic_name
         }
         spec = %{
-          id: Topic,  #Dynamic; value is ignored
-          start: {Topic, :start_link, [init_args]},
+          id: Pubsub.Topic,  #Dynamic; value is ignored
+          start: {Pubsub.Topic, :start_link, [init_args]},
           restart: :transient     #restart if crashed, but not if stopped
         }
         DynamicSupervisor.start_child(__MODULE__, spec)
@@ -40,16 +41,12 @@ defmodule Pubsub do
 
   @spec find_topic(any()) :: {:ok, pid()} | {:error, :not_found}
   def find_topic(topic_name) do
-    #todo, consider storing children in ETS, faster topic lookup
-    result = DynamicSupervisor.which_children(__MODULE__)
-      |> Enum.find(fn {_, pid, _, _} ->
-        Topic.name(pid) == topic_name
-      end)
+    result = :gproc.where(gproc_tuple(topic_name))
     case result do
-      {_, topic_pid, _, _} ->
-        {:ok, topic_pid}
-      _ ->
+      :undefined ->
         {:error, :not_found}
+      topic_pid ->
+        {:ok, topic_pid}
     end
   end
 
