@@ -58,7 +58,15 @@ defmodule PubsubTest do
     assert :ok == Pubsub.Topic.stop(topic_name)
   end
 
-  # cannot subscribe to a non existing topic
+  # TODO, more tests:
+  # unsubscribed should no longer receive messages
+  # publish to multiple subscribers async
+  # multiple topics, multiple published messages separated
+  # one subscriber can listen to multiple topic messages
+  # should not be able to publish to non existing
+  # should not be able to subscribe to a non existing topic
+  # should not be able to unsubscribe from a non existing topic
+  # stopped topic should unsubscribe and inform subscriber pids
 
   # =========================
   # Helpers
