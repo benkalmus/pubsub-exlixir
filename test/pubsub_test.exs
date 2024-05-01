@@ -30,6 +30,16 @@ defmodule PubsubTest do
     Pubsub.Topic.stop(topic2_name)
   end
 
+  test "stop pubsub should stop all topics" do
+    topic_name = "my topic"
+    Pubsub.new_topic(topic_name)
+    assert [topic_name] == Pubsub.all_topics()
+    Pubsub.stop()
+    assert_retry(5, 10, fn ->
+      assert [] == Pubsub.all_topics()
+    end)
+  end
+
   test "crashed topic gets restarted by supervisor" do
     topic_name = "topic_1"
     assert {:ok, pid} = Pubsub.new_topic(topic_name)
@@ -58,15 +68,72 @@ defmodule PubsubTest do
     assert :ok == Pubsub.Topic.stop(topic_name)
   end
 
+  test "unsubscribed should no longer receive messages" do
+    topic_name = "my topic"
+    assert {:ok, _pid} = Pubsub.new_topic(topic_name)
+    assert :ok == Pubsub.Topic.subscribe(topic_name,  self())
+    Pubsub.Topic.publish(topic_name, "hello world")
+    assert_receive {:pubsub_msg, _pid, "hello world"}
+    Pubsub.Topic.unsubscribe(topic_name, self())
+    Pubsub.Topic.publish(topic_name, "hello world")
+    refute_receive {:pubsub_msg, _pid, "hello world"}
+    Pubsub.Topic.stop(topic_name)
+  end
+
+  test "publish to multiple subscribers async" do
+    topic_name = "my topic"
+    assert {:ok, _pid} = Pubsub.new_topic(topic_name)
+
+    tasks = 1..3 |>
+      Enum.map(fn _ ->
+        Task.async(fn ->
+          pid = self()
+          Logger.debug("Subscribing #{inspect(pid)} to room  #{topic_name}")
+          Pubsub.Topic.subscribe(topic_name,  pid)
+          assert_receive {:pubsub_msg, _source, "msg"}
+          Pubsub.Topic.unsubscribe(topic_name, pid)
+        end)
+      end)
+
+    #wait for all tasks to start
+    Process.sleep(10)
+    #publish message
+    Pubsub.Topic.publish(topic_name, "msg")
+    #wait for all tasks to receive "msg"
+    tasks |> Enum.map(&Task.await(&1))
+    Pubsub.Topic.stop(topic_name)
+  end
+
+  test "multiple topics, multiple published messages separately" do
+    topics = ["t1", "t2"]
+    parent = self()
+    #spawn topics and immediately subscribe to all
+    pids = topics |> Enum.map(fn topic ->
+      {:ok, pid} = Pubsub.new_topic(topic)
+      assert :ok == Pubsub.Topic.subscribe(topic, parent)
+      pid
+    end)
+    #publish message each topic, expect a separate message from each
+    Enum.zip(pids, topics) |> Enum.map(fn {p, t} ->
+      Pubsub.Topic.publish(t, "msg")
+      assert_receive {:pubsub_msg, ^p, "msg"}
+    end)
+    assert :ok == Pubsub.stop()
+  end
+
   # TODO, more tests:
-  # unsubscribed should no longer receive messages
-  # publish to multiple subscribers async
-  # multiple topics, multiple published messages separated
-  # one subscriber can listen to multiple topic messages
-  # should not be able to publish to non existing
+
+  # test "should not be able to publish to non existing topic" do
+  #   topic_name = "my topic"
+  #   Pubsub.Topic.publish(topic_name, "msg")
+  #   refute_receive {:pubsub_msg, _p, "msg"}
+  # end
+  #
   # should not be able to subscribe to a non existing topic
   # should not be able to unsubscribe from a non existing topic
   # stopped topic should unsubscribe and inform subscriber pids
+
+
 
   # =========================
   # Helpers

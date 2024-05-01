@@ -17,7 +17,7 @@ defmodule Pubsub.RootSup do
     children = [
       {Pubsub, []}
     ]
-    opts = [strategy: :one_for_one]
+    opts = [strategy: :one_for_one, restart: :transient]
     Supervisor.init(children, opts)
   end
 end

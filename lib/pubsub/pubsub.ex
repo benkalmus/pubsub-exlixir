@@ -91,6 +91,13 @@ defmodule Pubsub do
 
     end
 
+  @doc """
+  Stops Pubsub and all its workers
+  """
+  def stop() do
+    Supervisor.stop(__MODULE__, :normal)
+  end
+
   # Supervisor API
   @impl true
   def init(_init_arg) do
